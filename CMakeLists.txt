@@ -3,7 +3,6 @@ cmake_policy(SET CMP0042 NEW)
 
 project (posix)
 
-add_definitions(-DNAPI_VERSION=7)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
