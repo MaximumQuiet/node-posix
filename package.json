@@ -1,5 +1,5 @@
 {
-    "name": "posix",
+    "name": "@maximumquiet/posix",
     "version": "4.2.0",
     "description": "The missing POSIX system calls",
     "license": "MIT",
@@ -31,12 +31,12 @@
         "swapon",
         "swapoff"
     ],
-    "homepage": "http://github.com/ohmu/node-posix",
+    "homepage": "http://github.com/MaximumQuiet/node-posix",
     "repository": {
         "type": "git",
-        "url": "git://github.com/ohmu/node-posix.git"
+        "url": "git://github.com/MaximumQuiet/node-posix.git"
     },
-    "author": "Mika Eloranta <mel@ohmu.fi>",
+    "author": "Mika Eloranta <mel@ohmu.fi>, Maxim Kuznetsov <github@maximumquiet.cyou>",
     "main": "./lib/posix",
     "dependencies": {
         "cmake-js": "^7.2.1",
