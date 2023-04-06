@@ -6,7 +6,7 @@ project (posix)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include_directories( ${CMAKE_JS_INC} ../nan)
+include_directories( ${CMAKE_JS_INC} ../../nan )
 
 file(GLOB SOURCE_FILES "src/posix.cc")
 
