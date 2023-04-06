@@ -3,25 +3,50 @@
     "version": "4.2.0",
     "description": "The missing POSIX system calls",
     "license": "MIT",
-    "keywords" : [
-        "posix", "rlimit", "getrlimit", "setrlimit", "ulimit", "setuid",
-        "setgid", "seteuid", "setegid", "chroot", "setreuid", "setregid",
-        "getpgrp", "setsid", "setpgid", "getpwnam", "getgrnam", "uid", "gid",
-        "initgroups", "syslog", "setlogmask", "gethostname", "sethostname",
-        "swapon", "swapoff"
+    "keywords": [
+        "posix",
+        "rlimit",
+        "getrlimit",
+        "setrlimit",
+        "ulimit",
+        "setuid",
+        "setgid",
+        "seteuid",
+        "setegid",
+        "chroot",
+        "setreuid",
+        "setregid",
+        "getpgrp",
+        "setsid",
+        "setpgid",
+        "getpwnam",
+        "getgrnam",
+        "uid",
+        "gid",
+        "initgroups",
+        "syslog",
+        "setlogmask",
+        "gethostname",
+        "sethostname",
+        "swapon",
+        "swapoff"
     ],
     "homepage": "http://github.com/ohmu/node-posix",
-    "repository" : {
-        "type" : "git",
-        "url" : "git://github.com/ohmu/node-posix.git"
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ohmu/node-posix.git"
     },
-    "author" : "Mika Eloranta <mel@ohmu.fi>",
-    "main" : "./lib/posix",
-    "dependencies" : {
-        "nan": "^2.14.x"
+    "author": "Mika Eloranta <mel@ohmu.fi>",
+    "main": "./lib/posix",
+    "dependencies": {
+        "cmake-js": "^7.2.1",
+        "nan": "^2.17.0"
     },
-    "scripts" : {
-        "test" : "make test"
+    "engines": {
+        "node": ">=14.15"
     },
-    "engines" : { "node": ">= 0.10.0" }
+    "scripts": {
+        "install": "cmake-js rebuild --target posix",
+        "test": "make test"
+    }
 }
