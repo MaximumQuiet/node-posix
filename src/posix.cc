@@ -322,24 +322,55 @@ NAN_METHOD(node_getgrnam) {
     }
 
     struct group* grp;
-    errno = 0; // reset errno before the call
+    struct group groupbuf;
+    char *buf = NULL;
+    char *newbuf;
+    int size;
+    int rc;
+
+    size = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (size == -1) {
+        size = 2048;
+    }
+
+    buf = (char*) malloc((size_t) size);
+    if (buf == NULL) {
+        return Nan::ThrowError("malloc() failed");
+    }
 
     if (info[0]->IsNumber()) {
-        grp = getgrgid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value());
-        if (errno) {
-            return Nan::ThrowError(Nan::ErrnoException(errno, "getgrgid", ""));
+        while ((rc = getgrgid_r(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
+            size *= 2;
+            newbuf = (char*) realloc(buf, (size_t) size);
+            if (!newbuf) {
+                break;
+            }
+            buf = newbuf;
+        }
+        if (rc) {
+            free(buf);
+            return Nan::ThrowError(Nan::ErrnoException(rc, "getgrgid", ""));
         }
     } else if (info[0]->IsString()) {
         Nan::Utf8String pwnam(info[0]);
-        grp = getgrnam(*pwnam);
-        if (errno) {
-            return Nan::ThrowError(Nan::ErrnoException(errno, "getgrnam", ""));
+        while ((rc = getgrnam_r(*pwnam, &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
+            size *= 2;
+            newbuf = (char*) realloc(buf, (size_t) size);
+            if (!newbuf) {
+                break;
+            }
+            buf = newbuf;
+        }
+        if (rc) {
+            free(buf);
+            return Nan::ThrowError(Nan::ErrnoException(rc, "getgrnam", ""));
         }
     } else {
         return Nan::ThrowTypeError("argument must be a number or a string");
     }
 
     if (!grp) {
+        free(buf);
         return Nan::ThrowError("group id does not exist");
     }
 
@@ -355,6 +386,7 @@ NAN_METHOD(node_getgrnam) {
     }
     Nan::Set(obj, Nan::New<String>("members").ToLocalChecked(), members);
 
+    free(buf);
     info.GetReturnValue().Set(obj);
 }
 
