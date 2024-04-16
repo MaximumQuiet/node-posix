@@ -1,5 +1,5 @@
 {
-    "name": "@maximumquiet/posix",
+    "name": "@ilb/posix",
     "version": "4.2.2",
     "description": "The missing POSIX system calls",
     "license": "MIT",
