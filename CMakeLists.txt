@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0042 NEW)
 
 project (posix)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+add_definitions(-DNAPI_VERSION=7)
 
-include_directories( ${CMAKE_JS_INC} ../../nan )
+include_directories(${CMAKE_JS_INC})
 
-file(GLOB SOURCE_FILES "src/posix.cc")
+set(SOURCE_FILES "src/posix.cc")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")

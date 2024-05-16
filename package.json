@@ -1,53 +1,56 @@
 {
-    "name": "@maximumquiet/posix",
-    "version": "4.2.2",
-    "description": "The missing POSIX system calls",
-    "license": "MIT",
-    "keywords": [
-        "posix",
-        "rlimit",
-        "getrlimit",
-        "setrlimit",
-        "ulimit",
-        "setuid",
-        "setgid",
-        "seteuid",
-        "setegid",
-        "chroot",
-        "setreuid",
-        "setregid",
-        "getpgrp",
-        "setsid",
-        "setpgid",
-        "getpwnam",
-        "getgrnam",
-        "uid",
-        "gid",
-        "initgroups",
-        "syslog",
-        "setlogmask",
-        "gethostname",
-        "sethostname",
-        "swapon",
-        "swapoff"
-    ],
-    "homepage": "http://github.com/MaximumQuiet/node-posix",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/MaximumQuiet/node-posix.git"
-    },
-    "author": "Mika Eloranta <mel@ohmu.fi>, Maxim Kuznetsov <github@maximumquiet.cyou>",
-    "main": "./lib/posix",
-    "files": ["lib/*", "src/*", "CMakeLists.txt"],
-    "dependencies": {
-        "cmake-js": "^7.2.1",
-        "nan": "^2.17.0"
-    },
-    "engines": {
-        "node": ">=14.15"
-    },
-    "scripts": {
-        "install": "cmake-js rebuild --target posix",
-        "test": "make test"
-    }
+  "name": "@maximumquiet/posix",
+  "version": "4.2.2",
+  "description": "The missing POSIX system calls",
+  "license": "MIT",
+  "keywords": [
+    "posix",
+    "rlimit",
+    "getrlimit",
+    "setrlimit",
+    "ulimit",
+    "setuid",
+    "setgid",
+    "seteuid",
+    "setegid",
+    "chroot",
+    "setreuid",
+    "setregid",
+    "getpgrp",
+    "setsid",
+    "setpgid",
+    "getpwnam",
+    "getgrnam",
+    "uid",
+    "gid",
+    "initgroups",
+    "syslog",
+    "setlogmask",
+    "gethostname",
+    "sethostname",
+    "swapon",
+    "swapoff"
+  ],
+  "homepage": "http://github.com/MaximumQuiet/node-posix",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/MaximumQuiet/node-posix.git"
+  },
+  "author": "Mika Eloranta <mel@ohmu.fi>, Maxim Kuznetsov <github@maximumquiet.cyou>",
+  "main": "./lib/posix",
+  "files": ["lib/*", "src/*", "CMakeLists.txt"],
+  "dependencies": {
+    "cmake-js": "^7.2.0",
+    "node-addon-api": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=14.15"
+  },
+  "scripts": {
+    "install": "cmake-js compile --target=posix",
+    "test": "make test"
+  },
+  "binary": {
+    "napi_versions": [7]
+  }
 }

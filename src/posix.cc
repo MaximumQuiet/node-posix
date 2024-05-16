@@ -1,4 +1,4 @@
-#include <nan.h>
+#include <napi.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -12,124 +12,140 @@
 #  include <sys/swap.h>  // swapon, swapoff
 #endif
 
-using v8::Array;
-using v8::FunctionTemplate;
-using v8::Integer;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::String;
-using v8::Value;
-
-NAN_METHOD(node_getppid) {
-    Nan::HandleScope scope;
+Napi::Value node_getppid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("getppid: takes no arguments");
+        Napi::Error::New(env, "getppid: takes no arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // on some platforms pid_t is defined as long hence the static_cast
-    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(getppid())));
+    return Napi::Number::New(env, static_cast<int32_t>(getppid()));
 }
 
-NAN_METHOD(node_getpgid) {
-    Nan::HandleScope scope;
+Napi::Value node_getpgid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("getpgid: takes exactly one argument");
+        Napi::Error::New(env, "getpgid: takes exactly one argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsNumber()) {
-       return Nan::ThrowTypeError("getpgid: first argument must be an integer");
+    if (!info[0].IsNumber()) {
+       Napi::TypeError::New(env, "getpgid: first argument must be an integer").ThrowAsJavaScriptException();
+       return env.Null();
     }
 
-    const pid_t pid = Nan::To<v8::Integer>(info[0]).ToLocalChecked()->Value();
+    const pid_t pid = info[0].ToNumber();
+
     // on some platforms pid_t is defined as long hence the static_cast
-    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(getpgid(pid))));
+    return Napi::Number::New(env, static_cast<int32_t>(getpgid(pid)));
 }
 
-NAN_METHOD(node_setpgid) {
-    Nan::HandleScope scope;
+Napi::Value node_setpgid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("setpgid: takes exactly two arguments");
+        Napi::Error::New(env, "setpgid: takes exactly two arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsNumber()) {
-        return Nan::ThrowTypeError("setpgid: first argument must be an integer");
+    if (!info[0].IsNumber()) {
+        Napi::TypeError::New(env, "setpgid: first argument must be an integer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[1]->IsNumber()) {
-        return Nan::ThrowTypeError("setpgid: first argument must be an integer");
+    if (!info[1].IsNumber()) {
+        Napi::TypeError::New(env, "setpgid: first argument must be an integer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (setpgid(Nan::To<v8::Integer>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Integer>(info[1]).ToLocalChecked()->Value()) < 0) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setpgid", ""));
+    if (setpgid(info[0].ToNumber(), info[1].ToNumber()) < 0) {
+        Napi::Error e = Napi::Error::New(env, "setpgid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_geteuid) {
-    Nan::HandleScope scope;
+Napi::Value node_geteuid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("geteuid: takes no arguments");
+        Napi::Error::New(env, "geteuid: takes no arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(geteuid()));
+    return Napi::Number::New(env, geteuid());
 }
 
-NAN_METHOD(node_getegid) {
-    Nan::HandleScope scope;
+Napi::Value node_getegid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("getegid: takes no arguments");
+        Napi::Error::New(env, "getegid: takes no arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(getegid()));
+    return Napi::Number::New(env, getegid());
 }
 
-NAN_METHOD(node_setsid) {
-    Nan::HandleScope scope;
+Napi::Value node_setsid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("setsid: takes no arguments");
+        Napi::Error::New(env, "setsid: takes no arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     pid_t sid = setsid();
 
     if (sid == -1) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setsid", ""));
+        Napi::Error e = Napi::Error::New(env, "setsid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // on some platforms pid_t is defined as long hence the static_cast
-    info.GetReturnValue().Set(Nan::New<Integer>(static_cast<int32_t>(sid)));
+    return Napi::Number::New(env, static_cast<int32_t>(sid));
 }
 
-NAN_METHOD(node_chroot) {
-    Nan::HandleScope scope;
+Napi::Value node_chroot(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("chroot: takes exactly one argument");
+        Napi::Error::New(env, "chroot: takes exactly one argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("chroot: first argument must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "chroot: first argument must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String dir_path(info[0]);
+    std::string dir_path_str = info[0].As<Napi::String>().Utf8Value();
+    const char *dir_path = dir_path_str.data();
 
     // proper order is to first chdir() and then chroot()
-    if (chdir(*dir_path)) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "chroot: chdir: ", ""));
+    if (chdir(dir_path)) {
+        Napi::Error e = Napi::Error::New(env, "chroot: chdir: ");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if(chroot(*dir_path)) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "chroot", ""));
+    if(chroot(dir_path)) {
+        Napi::Error e = Napi::Error::New(env, "chroot");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
 struct name_to_int_t {
@@ -154,99 +170,111 @@ static const name_to_int_t rlimit_name_to_res[] = {
 };
 
 // return null if value is RLIM_INFINITY, otherwise the uint value
-static Local<Value> rlimit_value(rlim_t limit) {
+static Napi::Value rlimit_value(const Napi::Env &env, rlim_t limit) {
     if (limit == RLIM_INFINITY) {
-        return Nan::Null();
+        return env.Null();
     } else {
-        return Nan::New<Number>((double)limit);
+        return Napi::Number::New(env, (double)limit);
     }
 }
 
-NAN_METHOD(node_getrlimit) {
-    Nan::HandleScope scope;
+Napi::Value node_getrlimit(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("getrlimit: requires exactly one argument");
+        Napi::Error::New(env, "getrlimit: requires exactly one argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("getrlimit: argument must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "getrlimit: argument must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     struct rlimit limit;
-    Nan::Utf8String rlimit_name(info[0]);
+    std::string rlimit_name_str = info[0].As<Napi::String>().Utf8Value();
+    const char *rlimit_name = rlimit_name_str.data();
     int resource = -1;
 
     for (const name_to_int_t* item = rlimit_name_to_res; item->name; ++item) {
-        if (!strcmp(*rlimit_name, item->name)) {
+        if (!strcmp(rlimit_name, item->name)) {
             resource = item->resource;
             break;
         }
     }
 
     if (resource < 0) {
-        return Nan::ThrowError("getrlimit: unknown resource name");
+        Napi::Error::New(env, "getrlimit: unknown resource name").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (getrlimit(resource, &limit)) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "getrlimit", ""));
+        Napi::Error e = Napi::Error::New(env, "getrlimit");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> data = Nan::New<Object>();
-    Nan::Set(data, Nan::New<String>("soft").ToLocalChecked(), rlimit_value(limit.rlim_cur));
-    Nan::Set(data, Nan::New<String>("hard").ToLocalChecked(), rlimit_value(limit.rlim_max));
+    Napi::Object data = Napi::Object::New(env);
+    (data).Set(Napi::String::New(env, "soft"), rlimit_value(env, limit.rlim_cur));
+    (data).Set(Napi::String::New(env, "hard"), rlimit_value(env, limit.rlim_max));
 
-    info.GetReturnValue().Set(data);
+    return data;
 }
 
-NAN_METHOD(node_setrlimit) {
-    Nan::HandleScope scope;
+Napi::Value node_setrlimit(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("setrlimit: requires exactly two arguments");
+        Napi::Error::New(env, "setrlimit: requires exactly two arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("setrlimit: argument 0 must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "setrlimit: argument 0 must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[1]->IsObject()) {
-        return Nan::ThrowTypeError("setrlimit: argument 1 must be an object");
+    if (!info[1].IsObject()) {
+        Napi::TypeError::New(env, "setrlimit: argument 1 must be an object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String rlimit_name(info[0]);
+    std::string rlimit_name_str = info[0].As<Napi::String>().Utf8Value();
+    const char *rlimit_name = rlimit_name_str.data();
     int resource = -1;
     for (const name_to_int_t* item = rlimit_name_to_res; item->name; ++item) {
-        if (!strcmp(*rlimit_name, item->name)) {
+        if (!strcmp(rlimit_name, item->name)) {
             resource = item->resource;
             break;
         }
     }
 
     if (resource < 0) {
-        return Nan::ThrowError("setrlimit: unknown resource name");
+        Napi::Error::New(env, "setrlimit: unknown resource name").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> limit_in = Nan::To<v8::Object>(info[1]).ToLocalChecked(); // Cast
-    Local<String> soft_key = Nan::New<String>("soft").ToLocalChecked();
-    Local<String> hard_key = Nan::New<String>("hard").ToLocalChecked();
+    Napi::Object limit_in = info[1].As<Napi::Object>(); // Cast
+    Napi::String soft_key = Napi::String::New(env, "soft");
+    Napi::String hard_key = Napi::String::New(env, "hard");
     struct rlimit limit;
     bool get_soft = false, get_hard = false;
-    if (Nan::Has(limit_in, soft_key).ToChecked()) {
-        if (Nan::Get(limit_in, soft_key).ToLocalChecked()->IsNull()) {
+    if ((limit_in).Has(soft_key)) {
+        if ((limit_in).Get(soft_key).IsNull()) {
             limit.rlim_cur = RLIM_INFINITY;
         } else {
-            limit.rlim_cur = Nan::To<v8::Integer>(Nan::Get(limit_in, soft_key).ToLocalChecked()).ToLocalChecked()->Value();
+            limit.rlim_cur = limit_in.Get(soft_key).ToNumber().Int64Value();
         }
     } else {
         get_soft = true;
     }
 
-    if (Nan::Has(limit_in, hard_key).ToChecked()) {
-        if (Nan::Get(limit_in, hard_key).ToLocalChecked()->IsNull()) {
+    if ((limit_in).Has(hard_key)) {
+        if ((limit_in).Get(hard_key).IsNull()) {
             limit.rlim_max = RLIM_INFINITY;
         } else {
-            limit.rlim_max = Nan::To<v8::Integer>(Nan::Get(limit_in, hard_key).ToLocalChecked()).ToLocalChecked()->Value();
+            limit.rlim_max = limit_in.Get(hard_key).ToNumber().Int64Value();
         }
     } else {
         get_hard = true;
@@ -256,69 +284,86 @@ NAN_METHOD(node_setrlimit) {
         // current values for the limits are needed
         struct rlimit current;
         if (getrlimit(resource, &current)) {
-            return Nan::ThrowError(Nan::ErrnoException(errno, "getrlimit", ""));
+            Napi::Error e = Napi::Error::New(env, "getrlimit");
+            e.Set("code", Napi::Number::New(env, errno));
+            e.ThrowAsJavaScriptException();
+            return env.Null();
         }
         if (get_soft) { limit.rlim_cur = current.rlim_cur; }
         if (get_hard) { limit.rlim_max = current.rlim_max; }
     }
 
     if (setrlimit(resource, &limit)) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setrlimit", ""));
+        Napi::Error e = Napi::Error::New(env, "setrlimit");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_getpwnam) {
-    Nan::HandleScope scope;
+Napi::Value node_getpwnam(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("getpwnam: requires exactly 1 argument");
+        Napi::Error::New(env, "getpwnam: requires exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     struct passwd* pwd;
     errno = 0; // reset errno before the call
 
-    if (info[0]->IsNumber()) {
-        pwd = getpwuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value());
+    if (info[0].IsNumber()) {
+        pwd = getpwuid(info[0].ToNumber().Int32Value());
         if (errno) {
-            return Nan::ThrowError(Nan::ErrnoException(errno, "getpwuid", ""));
+            Napi::Error e = Napi::Error::New(env, "getpwuid");
+            e.Set("code", Napi::Number::New(env, errno));
+            e.ThrowAsJavaScriptException();
+            return env.Null();
         }
-    } else if (info[0]->IsString()) {
-        Nan::Utf8String pwnam(info[0]);
-        pwd = getpwnam(*pwnam);
+    } else if (info[0].IsString()) {
+        std::string pwnam_str = info[0].As<Napi::String>();
+        const char *pwnam = pwnam_str.data();
+        pwd = getpwnam(pwnam);
         if(errno) {
-            return Nan::ThrowError(Nan::ErrnoException(errno, "getpwnam", ""));
+            Napi::Error e = Napi::Error::New(env, "getpwnam");
+            e.Set("code", Napi::Number::New(env, errno));
+            e.ThrowAsJavaScriptException();
+            return env.Null();
         }
     } else {
-        return Nan::ThrowTypeError("argument must be a number or a string");
+        Napi::TypeError::New(env, "argument must be a number or a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (!pwd) {
-        return Nan::ThrowError("user id does not exist");
+        Napi::Error::New(env, "user id does not exist").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> obj = Nan::New<Object>();
-    Nan::Set(obj, Nan::New<String>("name").ToLocalChecked(), Nan::New<String>(pwd->pw_name).ToLocalChecked());
-    Nan::Set(obj, Nan::New<String>("passwd").ToLocalChecked(), Nan::New<String>(pwd->pw_passwd).ToLocalChecked());
-    Nan::Set(obj, Nan::New<String>("uid").ToLocalChecked(), Nan::New<Number>(pwd->pw_uid));
-    Nan::Set(obj, Nan::New<String>("gid").ToLocalChecked(), Nan::New<Number>(pwd->pw_gid));
+    Napi::Object obj = Napi::Object::New(env);
+    (obj).Set(Napi::String::New(env, "name"), Napi::String::New(env, pwd->pw_name));
+    (obj).Set(Napi::String::New(env, "passwd"), Napi::String::New(env, pwd->pw_passwd));
+    (obj).Set(Napi::String::New(env, "uid"), Napi::Number::New(env, pwd->pw_uid));
+    (obj).Set(Napi::String::New(env, "gid"), Napi::Number::New(env, pwd->pw_gid));
 #ifdef __ANDROID__
-    Nan::Set(obj, Nan::New<String>("gecos").ToLocalChecked(), Nan::Null());
+    (obj).Set(Napi::String::New(env, "gecos"), env.Null());
 #else
-    Nan::Set(obj, Nan::New<String>("gecos").ToLocalChecked(), Nan::New<String>(pwd->pw_gecos).ToLocalChecked());
+    (obj).Set(Napi::String::New(env, "gecos"), Napi::String::New(env, pwd->pw_gecos));
 #endif
-    Nan::Set(obj, Nan::New<String>("shell").ToLocalChecked(), Nan::New<String>(pwd->pw_shell).ToLocalChecked());
-    Nan::Set(obj, Nan::New<String>("dir").ToLocalChecked(), Nan::New<String>(pwd->pw_dir).ToLocalChecked());
+    (obj).Set(Napi::String::New(env, "shell"), Napi::String::New(env, pwd->pw_shell));
+    (obj).Set(Napi::String::New(env, "dir"), Napi::String::New(env, pwd->pw_dir));
 
-    info.GetReturnValue().Set(obj);
+    return obj;
 }
 
-NAN_METHOD(node_getgrnam) {
-    Nan::HandleScope scope;
+Napi::Value node_getgrnam(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("getgrnam: requires exactly 1 argument");
+        Napi::Error::New(env, "getgrnam: requires exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     struct group* grp;
@@ -335,11 +380,12 @@ NAN_METHOD(node_getgrnam) {
 
     buf = (char*) malloc((size_t) size);
     if (buf == NULL) {
-        return Nan::ThrowError("malloc() failed");
+        Napi::Error::New(env, "malloc() failed").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info[0]->IsNumber()) {
-        while ((rc = getgrgid_r(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
+    if (info[0].IsNumber()) {
+        while ((rc = getgrgid_r(info[0].ToNumber().Int32Value(), &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
             size *= 2;
             newbuf = (char*) realloc(buf, (size_t) size);
             if (!newbuf) {
@@ -349,11 +395,15 @@ NAN_METHOD(node_getgrnam) {
         }
         if (rc) {
             free(buf);
-            return Nan::ThrowError(Nan::ErrnoException(rc, "getgrgid", ""));
+            Napi::Error e = Napi::Error::New(env, "getgrgid");
+            e.Set("code", Napi::Number::New(env, errno));
+            e.ThrowAsJavaScriptException();
+            return env.Null();
         }
-    } else if (info[0]->IsString()) {
-        Nan::Utf8String pwnam(info[0]);
-        while ((rc = getgrnam_r(*pwnam, &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
+    } else if (info[0].IsString()) {
+        std::string pwnam_str = info[0].As<Napi::String>();
+        const char *pwnam = pwnam_str.data();
+        while ((rc = getgrnam_r(pwnam, &groupbuf, buf, (size_t) size, &grp)) == ERANGE) {
             size *= 2;
             newbuf = (char*) realloc(buf, (size_t) size);
             if (!newbuf) {
@@ -363,107 +413,133 @@ NAN_METHOD(node_getgrnam) {
         }
         if (rc) {
             free(buf);
-            return Nan::ThrowError(Nan::ErrnoException(rc, "getgrnam", ""));
+            Napi::Error e = Napi::Error::New(env, "getgrnam");
+            e.Set("code", Napi::Number::New(env, errno));
+            e.ThrowAsJavaScriptException();
+            return env.Null();
         }
     } else {
-        return Nan::ThrowTypeError("argument must be a number or a string");
+        Napi::TypeError::New(env, "argument must be a number or a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (!grp) {
         free(buf);
-        return Nan::ThrowError("group id does not exist");
+        Napi::Error::New(env, "group id does not exist").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> obj = Nan::New<Object>();
-    Nan::Set(obj, Nan::New<String>("name").ToLocalChecked(), Nan::New<String>(grp->gr_name).ToLocalChecked());
-    Nan::Set(obj, Nan::New<String>("passwd").ToLocalChecked(), Nan::New<String>(grp->gr_passwd).ToLocalChecked());
-    Nan::Set(obj, Nan::New<String>("gid").ToLocalChecked(), Nan::New<Number>(grp->gr_gid));
+    Napi::Object obj = Napi::Object::New(env);
+    (obj).Set(Napi::String::New(env, "name"), Napi::String::New(env, grp->gr_name));
+    (obj).Set(Napi::String::New(env, "passwd"), Napi::String::New(env, grp->gr_passwd));
+    (obj).Set(Napi::String::New(env, "gid"), Napi::Number::New(env, grp->gr_gid));
 
-    Local<Array> members = Nan::New<Array>();
+    Napi::Array members = Napi::Array::New(env);
     char** cur = grp->gr_mem;
     for (size_t i=0; *cur; ++i, ++cur) {
-        Nan::Set(members, i, Nan::New<String>(*cur).ToLocalChecked());
+        (members).Set(i, Napi::String::New(env, *cur));
     }
-    Nan::Set(obj, Nan::New<String>("members").ToLocalChecked(), members);
+    (obj).Set(Napi::String::New(env, "members"), members);
 
     free(buf);
-    info.GetReturnValue().Set(obj);
+    return obj;
 }
 
-NAN_METHOD(node_initgroups) {
-    Nan::HandleScope scope;
+Napi::Value node_initgroups(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("initgroups: requires exactly 2 arguments");
+        Napi::Error::New(env, "initgroups: requires exactly 2 arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString() || !info[1]->IsNumber()) {
-        return Nan::ThrowTypeError("initgroups: first argument must be a string "
-                         " and the second an integer");
+    if (!info[0].IsString() || !info[1].IsNumber()) {
+        Napi::Error::New(env, "initgroups: first argument must be a string and the second an integer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String unam(info[0]);
-    if (initgroups(*unam, Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "initgroups", ""));
+    std::string unam_str = info[0].As<Napi::String>();
+    const char *unam = unam_str.data();
+    if (initgroups(unam, info[1].ToNumber().Int32Value())) {
+        Napi::Error e = Napi::Error::New(env, "initgroups");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_seteuid) {
-    Nan::HandleScope scope;
+Napi::Value node_seteuid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("seteuid: requires exactly 1 argument");
+        Napi::Error::New(env, "seteuid: requires exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (seteuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "seteuid", ""));
+    if (seteuid(info[0].ToNumber().Int32Value())) {
+        Napi::Error e = Napi::Error::New(env, "seteuid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_setegid) {
-    Nan::HandleScope scope;
+Napi::Value node_setegid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("setegid: requires exactly 1 argument");
+        Napi::Error::New(env, "setegid: requires exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (setegid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setegid", ""));
+    if (setegid(info[0].ToNumber().Int32Value())) {
+        Napi::Error e = Napi::Error::New(env, "setegid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_setregid) {
-    Nan::HandleScope scope;
+Napi::Value node_setregid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("setregid: requires exactly 2 arguments");
+        Napi::Error::New(env, "setregid: requires exactly 2 arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (setregid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setregid", ""));
+    if (setregid(info[0].ToNumber().Int32Value(), info[1].ToNumber().Int32Value())) {
+        Napi::Error e = Napi::Error::New(env, "setregid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_setreuid) {
-    Nan::HandleScope scope;
+Napi::Value node_setreuid(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("setreuid: requires exactly 2 arguments");
+        Napi::Error::New(env, "setreuid: requires exactly 2 arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (setreuid(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value())) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "setreuid", ""));
+    if (setreuid(info[0].ToNumber().Int32Value(), info[1].ToNumber().Int32Value())) {
+        Napi::Error e = Napi::Error::New(env, "setreuid");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
 // openlog() first argument (const char* ident) is not guaranteed to be
@@ -471,78 +547,87 @@ NAN_METHOD(node_setreuid) {
 static const size_t MAX_SYSLOG_IDENT=100;
 static char syslog_ident[MAX_SYSLOG_IDENT+1] = {0};
 
-NAN_METHOD(node_openlog) {
-    Nan::HandleScope scope;
+Napi::Value node_openlog(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 3) {
-        return Nan::ThrowError("openlog: requires exactly 3 arguments");
+        Napi::Error::New(env, "openlog: requires exactly 3 arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String ident(info[0]);
-    strncpy(syslog_ident, *ident, MAX_SYSLOG_IDENT);
+    std::string ident_str = info[0].As<Napi::String>();
+    const char *ident = ident_str.data();
+    strncpy(syslog_ident, ident, MAX_SYSLOG_IDENT);
     syslog_ident[MAX_SYSLOG_IDENT] = 0;
-    if (!info[1]->IsNumber() || !info[2]->IsNumber()) {
-        return Nan::ThrowError("openlog: invalid argument values");
+    if (!info[1].IsNumber() || !info[2].IsNumber()) {
+        Napi::Error::New(env, "openlog: invalid argument values").ThrowAsJavaScriptException();
+        return env.Null();
     }
     // note: openlog does not ever fail, no return value
-    openlog(syslog_ident, Nan::To<v8::Int32>(info[1]).ToLocalChecked()->Value(), Nan::To<v8::Int32>(info[2]).ToLocalChecked()->Value());
+    openlog(syslog_ident, info[1].ToNumber().Int32Value(), info[2].ToNumber().Int32Value());
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_closelog) {
-    Nan::HandleScope scope;
+Napi::Value node_closelog(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("closelog: does not take any arguments");
+        Napi::Error::New(env, "closelog: does not take any arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // note: closelog does not ever fail, no return value
     closelog();
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_syslog) {
-    Nan::HandleScope scope;
+Napi::Value node_syslog(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("syslog: requires exactly 2 arguments");
+        Napi::Error::New(env, "syslog: requires exactly 2 arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String message(info[1]);
+    std::string message_str = info[1].As<Napi::String>();
+    const char *message = message_str.data();
     // note: syslog does not ever fail, no return value
-    syslog(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value(), "%s", *message);
+    syslog(info[0].ToNumber().Int32Value(), "%s", message);
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_setlogmask) {
-    Nan::HandleScope scope;
+Napi::Value node_setlogmask(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("setlogmask: takes exactly 1 argument");
+        Napi::Error::New(env, "setlogmask: takes exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New<Integer>(setlogmask(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value())));
+    return Napi::Number::New(env, setlogmask(info[0].ToNumber().Int32Value()));
 }
 
 #define ADD_MASK_FLAG(name, flag) \
-    Nan::Set(obj, Nan::New<String>(name).ToLocalChecked(), Nan::New<Integer>(flag)); \
-    Nan::Set(obj, Nan::New<String>("mask_" name).ToLocalChecked(), Nan::New<Integer>(LOG_MASK(flag)));
+    (obj).Set(Napi::String::New(env, name), Napi::Number::New(env, flag)); \
+    (obj).Set(Napi::String::New(env, "mask_" name), Napi::Number::New(env, LOG_MASK(flag)));
 
-NAN_METHOD(node_update_syslog_constants) {
-    Nan::HandleScope scope;
+Napi::Value node_update_syslog_constants(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-      return Nan::ThrowError("update_syslog_constants: takes exactly 1 argument");
+      Napi::Error::New(env, "update_syslog_constants: takes exactly 1 argument").ThrowAsJavaScriptException();
+      return env.Null();
     }
 
-    if (!info[0]->IsObject()) {
-        return Nan::ThrowTypeError("update_syslog_constants: argument must be an object");
+    if (!info[0].IsObject()) {
+        Napi::TypeError::New(env, "update_syslog_constants: argument must be an object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> obj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+    Napi::Object obj = info[0].As<Napi::Object>();
     ADD_MASK_FLAG("emerg", LOG_EMERG);
     ADD_MASK_FLAG("alert", LOG_ALERT);
     ADD_MASK_FLAG("crit", LOG_CRIT);
@@ -553,46 +638,47 @@ NAN_METHOD(node_update_syslog_constants) {
     ADD_MASK_FLAG("debug", LOG_DEBUG);
 
     // facility constants
-    Nan::Set(obj, Nan::New<String>("auth").ToLocalChecked(), Nan::New<Integer>(LOG_AUTH));
+    (obj).Set(Napi::String::New(env, "auth"), Napi::Number::New(env, LOG_AUTH));
 #ifdef LOG_AUTHPRIV
-    Nan::Set(obj, Nan::New<String>("authpriv").ToLocalChecked(), Nan::New<Integer>(LOG_AUTHPRIV));
+    (obj).Set(Napi::String::New(env, "authpriv"), Napi::Number::New(env, LOG_AUTHPRIV));
 #endif
-    Nan::Set(obj, Nan::New<String>("cron").ToLocalChecked(), Nan::New<Integer>(LOG_CRON));
-    Nan::Set(obj, Nan::New<String>("daemon").ToLocalChecked(), Nan::New<Integer>(LOG_DAEMON));
+    (obj).Set(Napi::String::New(env, "cron"), Napi::Number::New(env, LOG_CRON));
+    (obj).Set(Napi::String::New(env, "daemon"), Napi::Number::New(env, LOG_DAEMON));
 #ifdef LOG_FTP
-    Nan::Set(obj, Nan::New<String>("ftp").ToLocalChecked(), Nan::New<Integer>(LOG_FTP));
+    (obj).Set(Napi::String::New(env, "ftp"), Napi::Number::New(env, LOG_FTP));
 #endif
-    Nan::Set(obj, Nan::New<String>("kern").ToLocalChecked(), Nan::New<Integer>(LOG_KERN));
-    Nan::Set(obj, Nan::New<String>("lpr").ToLocalChecked(), Nan::New<Integer>(LOG_LPR));
-    Nan::Set(obj, Nan::New<String>("mail").ToLocalChecked(), Nan::New<Integer>(LOG_MAIL));
-    Nan::Set(obj, Nan::New<String>("news").ToLocalChecked(), Nan::New<Integer>(LOG_NEWS));
-    Nan::Set(obj, Nan::New<String>("syslog").ToLocalChecked(), Nan::New<Integer>(LOG_SYSLOG));
-    Nan::Set(obj, Nan::New<String>("user").ToLocalChecked(), Nan::New<Integer>(LOG_USER));
-    Nan::Set(obj, Nan::New<String>("uucp").ToLocalChecked(), Nan::New<Integer>(LOG_UUCP));
-    Nan::Set(obj, Nan::New<String>("local0").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL0));
-    Nan::Set(obj, Nan::New<String>("local1").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL1));
-    Nan::Set(obj, Nan::New<String>("local2").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL2));
-    Nan::Set(obj, Nan::New<String>("local3").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL3));
-    Nan::Set(obj, Nan::New<String>("local4").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL4));
-    Nan::Set(obj, Nan::New<String>("local5").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL5));
-    Nan::Set(obj, Nan::New<String>("local6").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL6));
-    Nan::Set(obj, Nan::New<String>("local7").ToLocalChecked(), Nan::New<Integer>(LOG_LOCAL7));
+    (obj).Set(Napi::String::New(env, "kern"), Napi::Number::New(env, LOG_KERN));
+    (obj).Set(Napi::String::New(env, "lpr"), Napi::Number::New(env, LOG_LPR));
+    (obj).Set(Napi::String::New(env, "mail"), Napi::Number::New(env, LOG_MAIL));
+    (obj).Set(Napi::String::New(env, "news"), Napi::Number::New(env, LOG_NEWS));
+    (obj).Set(Napi::String::New(env, "syslog"), Napi::Number::New(env, LOG_SYSLOG));
+    (obj).Set(Napi::String::New(env, "user"), Napi::Number::New(env, LOG_USER));
+    (obj).Set(Napi::String::New(env, "uucp"), Napi::Number::New(env, LOG_UUCP));
+    (obj).Set(Napi::String::New(env, "local0"), Napi::Number::New(env, LOG_LOCAL0));
+    (obj).Set(Napi::String::New(env, "local1"), Napi::Number::New(env, LOG_LOCAL1));
+    (obj).Set(Napi::String::New(env, "local2"), Napi::Number::New(env, LOG_LOCAL2));
+    (obj).Set(Napi::String::New(env, "local3"), Napi::Number::New(env, LOG_LOCAL3));
+    (obj).Set(Napi::String::New(env, "local4"), Napi::Number::New(env, LOG_LOCAL4));
+    (obj).Set(Napi::String::New(env, "local5"), Napi::Number::New(env, LOG_LOCAL5));
+    (obj).Set(Napi::String::New(env, "local6"), Napi::Number::New(env, LOG_LOCAL6));
+    (obj).Set(Napi::String::New(env, "local7"), Napi::Number::New(env, LOG_LOCAL7));
 
     // option constants
-    Nan::Set(obj, Nan::New<String>("pid").ToLocalChecked(), Nan::New<Integer>(LOG_PID));
-    Nan::Set(obj, Nan::New<String>("cons").ToLocalChecked(), Nan::New<Integer>(LOG_CONS));
-    Nan::Set(obj, Nan::New<String>("ndelay").ToLocalChecked(), Nan::New<Integer>(LOG_NDELAY));
-    Nan::Set(obj, Nan::New<String>("odelay").ToLocalChecked(), Nan::New<Integer>(LOG_ODELAY));
-    Nan::Set(obj, Nan::New<String>("nowait").ToLocalChecked(), Nan::New<Integer>(LOG_NOWAIT));
+    (obj).Set(Napi::String::New(env, "pid"), Napi::Number::New(env, LOG_PID));
+    (obj).Set(Napi::String::New(env, "cons"), Napi::Number::New(env, LOG_CONS));
+    (obj).Set(Napi::String::New(env, "ndelay"), Napi::Number::New(env, LOG_NDELAY));
+    (obj).Set(Napi::String::New(env, "odelay"), Napi::Number::New(env, LOG_ODELAY));
+    (obj).Set(Napi::String::New(env, "nowait"), Napi::Number::New(env, LOG_NOWAIT));
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_gethostname) {
-    Nan::HandleScope scope;
+Napi::Value node_gethostname(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 0) {
-        return Nan::ThrowError("gethostname: takes no arguments");
+        Napi::Error::New(env, "gethostname: takes no arguments").ThrowAsJavaScriptException();
+        return env.Null();
     }
 #ifndef HOST_NAME_MAX
 # define HOST_NAME_MAX 255
@@ -602,140 +688,159 @@ NAN_METHOD(node_gethostname) {
 
     int rc = gethostname(hostname, HOST_NAME_MAX);
     if (rc != 0) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "gethostname", ""));
+        Napi::Error e = Napi::Error::New(env, "gethostname");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New<String>(hostname).ToLocalChecked());
+    return Napi::String::New(env, hostname);
 }
 
 #ifndef __ANDROID__
-NAN_METHOD(node_sethostname) {
-    Nan::HandleScope scope;
+Napi::Value node_sethostname(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("sethostname: takes exactly 1 argument");
+        Napi::Error::New(env, "sethostname: takes exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("sethostname: first argument must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "sethostname: first argument must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String str(info[0]);
+    std::string hostname_str = info[0].As<Napi::String>();
+    const char *hostname = hostname_str.data();
 
-    int rc = sethostname(*str, str.length());
+    int rc = sethostname(hostname, hostname_str.length());
     if (rc != 0) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "sethostname", ""));
+        Napi::Error e = Napi::Error::New(env, "sethostname");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 #endif // __ANDROID__
 
 #ifdef __linux__
-NAN_METHOD(node_swapon) {
-    Nan::HandleScope scope;
+Napi::Value node_swapon(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 2) {
-        return Nan::ThrowError("swapon: takes exactly 2 argument");
+        Napi::Error::New(env, "swapon: takes exactly 2 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("swapon: first argument must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "swapon: first argument must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[1]->IsNumber()) {
-        return Nan::ThrowTypeError("swapon: second argument must be an integer");
+    if (!info[1].IsNumber()) {
+        Napi::TypeError::New(env, "swapon: second argument must be an integer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String str(info[0]);
+    std::string str = info[0].As<Napi::String>();
 
-    int rc = swapon(*str, Nan::To<v8::Integer>(info[1]).ToLocalChecked()->Value());
+    int rc = swapon(*str, info[1].ToNumber().Int32Value());
     if (rc != 0) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "swapon", ""));
+        Napi::Error e = Napi::Error::New(env, "swapon");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_swapoff) {
-    Nan::HandleScope scope;
+Napi::Value node_swapoff(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-        return Nan::ThrowError("swapoff: takes exactly 1 argument");
+        Napi::Error::New(env, "swapoff: takes exactly 1 argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsString()) {
-        return Nan::ThrowTypeError("swapoff: first argument must be a string");
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "swapoff: first argument must be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String str(info[0]);
+    std::string str = info[0].As<Napi::String>();
 
     int rc = swapoff(*str);
     if (rc != 0) {
-        return Nan::ThrowError(Nan::ErrnoException(errno, "swapoff", ""));
+        Napi::Error e = Napi::Error::New(env, "swapoff");
+        e.Set("code", Napi::Number::New(env, errno));
+        e.ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(node_update_swap_constants) {
-    Nan::HandleScope scope;
+Napi::Value node_update_swap_constants(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
 
     if (info.Length() != 1) {
-      return Nan::ThrowError("update_syslog_constants: takes exactly 1 argument");
+      Napi::Error::New(env, "update_syslog_constants: takes exactly 1 argument").ThrowAsJavaScriptException();
+      return env.Null();
     }
 
-    if (!info[0]->IsObject()) {
-        return Nan::ThrowTypeError("update_syslog_constants: argument must be an object");
+    if (!info[0].IsObject()) {
+        Napi::TypeError::New(env, "update_syslog_constants: argument must be an object").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Local<Object> obj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-    Nan::Set(obj, Nan::New<String>("prefer").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_PREFER));
+    Napi::Object obj = info[0].As<Napi::Object>();
+    (obj).Set(Napi::String::New(env, "prefer"), Napi::Number::New(env, SWAP_FLAG_PREFER));
 #ifdef SWAP_FLAG_DISCARD
-    Nan::Set(obj, Nan::New<String>("discard").ToLocalChecked(), Nan::New<Integer>(SWAP_FLAG_DISCARD));
+    (obj).Set(Napi::String::New(env, "discard"), Napi::Number::New(env, SWAP_FLAG_DISCARD));
 #endif // SWAP_FLAG_DISCARD
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 #endif // __linux__
 
-#define EXPORT(name, symbol) Nan::Set(exports, \
-  Nan::New<String>(name).ToLocalChecked(), \
-  Nan::GetFunction(Nan::New<FunctionTemplate>(symbol)).ToLocalChecked()    \
-)
+Napi::Object init(Napi::Env env, Napi::Object exports) {
+  exports.Set("getppid", Napi::Function::New(env, node_getppid));
+  exports.Set("getpgid", Napi::Function::New(env, node_getpgid));
+  exports.Set("setpgid", Napi::Function::New(env, node_setpgid));
+  exports.Set("geteuid", Napi::Function::New(env, node_geteuid));
+  exports.Set("getegid", Napi::Function::New(env, node_getegid));
+  exports.Set("setsid", Napi::Function::New(env, node_setsid));
+  exports.Set("chroot", Napi::Function::New(env, node_chroot));
+  exports.Set("getrlimit", Napi::Function::New(env, node_getrlimit));
+  exports.Set("setrlimit", Napi::Function::New(env, node_setrlimit));
+  exports.Set("getpwnam", Napi::Function::New(env, node_getpwnam));
+  exports.Set("getgrnam", Napi::Function::New(env, node_getgrnam));
+  exports.Set("initgroups", Napi::Function::New(env, node_initgroups));
+  exports.Set("seteuid", Napi::Function::New(env, node_seteuid));
+  exports.Set("setegid", Napi::Function::New(env, node_setegid));
+  exports.Set("setregid", Napi::Function::New(env, node_setregid));
+  exports.Set("setreuid", Napi::Function::New(env, node_setreuid));
+  exports.Set("openlog", Napi::Function::New(env, node_openlog));
+  exports.Set("closelog", Napi::Function::New(env, node_closelog));
+  exports.Set("syslog", Napi::Function::New(env, node_syslog));
+  exports.Set("setlogmask", Napi::Function::New(env, node_setlogmask));
+  exports.Set("update_syslog_constants", Napi::Function::New(env, node_update_syslog_constants));
+  exports.Set("gethostname", Napi::Function::New(env, node_gethostname));
+  #ifndef ANDROID
+    exports.Set("sethostname", Napi::Function::New(env, node_sethostname));
+  #endif // ANDROID
 
-void init(Local<Object> exports) {
-    EXPORT("getppid", node_getppid);
-    EXPORT("getpgid", node_getpgid);
-    EXPORT("setpgid", node_setpgid);
-    EXPORT("geteuid", node_geteuid);
-    EXPORT("getegid", node_getegid);
-    EXPORT("setsid", node_setsid);
-    EXPORT("chroot", node_chroot);
-    EXPORT("getrlimit", node_getrlimit);
-    EXPORT("setrlimit", node_setrlimit);
-    EXPORT("getpwnam", node_getpwnam);
-    EXPORT("getgrnam", node_getgrnam);
-    EXPORT("initgroups", node_initgroups);
-    EXPORT("seteuid", node_seteuid);
-    EXPORT("setegid", node_setegid);
-    EXPORT("setregid", node_setregid);
-    EXPORT("setreuid", node_setreuid);
-    EXPORT("openlog", node_openlog);
-    EXPORT("closelog", node_closelog);
-    EXPORT("syslog", node_syslog);
-    EXPORT("setlogmask", node_setlogmask);
-    EXPORT("update_syslog_constants", node_update_syslog_constants);
-    EXPORT("gethostname", node_gethostname);
-#ifndef __ANDROID__
-    EXPORT("sethostname", node_sethostname);
-#endif // __ANDROID__
+  #ifdef linux
+    exports.Set("swapon", Napi::Function::New(env, node_swapon));
+    exports.Set("swapoff", Napi::Function::New(env, node_swapoff));
+    exports.Set("update_swap_constants", Napi::Function::New(env, node_update_swap_constants));
+  #endif
 
-    #ifdef __linux__
-      EXPORT("swapon", node_swapon);
-      EXPORT("swapoff", node_swapoff);
-      EXPORT("update_swap_constants", node_update_swap_constants);
-    #endif
+  return exports;
 }
 
-NODE_MODULE(posix, init);
+NODE_API_MODULE(posix, init);
