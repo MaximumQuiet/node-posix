@@ -1,6 +1,6 @@
 {
-  "name": "@maximumquiet/posix",
-  "version": "4.2.2",
+  "name": "@ilb/posix",
+  "version": "5.0.0",
   "description": "The missing POSIX system calls",
   "license": "MIT",
   "keywords": [
