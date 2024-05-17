@@ -745,9 +745,10 @@ Napi::Value node_swapon(const Napi::CallbackInfo& info) {
         return env.Null();
     }
 
-    std::string str = info[0].As<Napi::String>();
+    std::string str_str = info[0].As<Napi::String>();
+    const char *str = str_str.data();
 
-    int rc = swapon(*str, info[1].ToNumber().Int32Value());
+    int rc = swapon(str, info[1].ToNumber().Int32Value());
     if (rc != 0) {
         Napi::Error e = Napi::Error::New(env, "swapon");
         e.Set("code", Napi::Number::New(env, errno));
@@ -771,9 +772,10 @@ Napi::Value node_swapoff(const Napi::CallbackInfo& info) {
         return env.Null();
     }
 
-    std::string str = info[0].As<Napi::String>();
+    std::string str_str = info[0].As<Napi::String>();
+    const char *str = str_str.data();
 
-    int rc = swapoff(*str);
+    int rc = swapoff(str);
     if (rc != 0) {
         Napi::Error e = Napi::Error::New(env, "swapoff");
         e.Set("code", Napi::Number::New(env, errno));

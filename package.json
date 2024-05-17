@@ -1,6 +1,6 @@
 {
   "name": "@ilb/posix",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "The missing POSIX system calls",
   "license": "MIT",
   "keywords": [
